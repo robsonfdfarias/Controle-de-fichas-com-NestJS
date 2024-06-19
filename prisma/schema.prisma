@@ -1,0 +1,47 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id Int @id @default(autoincrement())
+  matricula String @unique
+  @@map("admins")
+}
+
+model Ficha {
+  id Int @id @default(autoincrement())
+  local Local @relation(fields: [localId], references: [id])
+  localId Int @unique
+  defaultRecord Int
+  priorityRecord Int
+  date String
+  @@map("records")
+}
+
+model Local {
+  id Int @id @default(autoincrement())
+  name String
+  address String
+  ficha Ficha[]
+  @@map("locais")
+}
+
+model Log {
+  id Int @id @default(autoincrement())
+  matricula String @unique
+  action String //Se é um atualização, reset de ficha...
+  description String // descrição mais detalhada da ação
+  dateAction DateTime @default(now())
+  @@map("logs")
+}
