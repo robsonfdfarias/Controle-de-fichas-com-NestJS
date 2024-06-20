@@ -21,11 +21,10 @@ model Admin {
 
 model Ficha {
   id Int @id @default(autoincrement())
-  local Local @relation(fields: [localId], references: [id])
-  localId Int @unique
+  local Local[]
   defaultRecord Int
   priorityRecord Int
-  date String
+  dateReg String
   @@map("records")
 }
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ValidationPipe } from '@nestjs/common';
 import { FichaService } from './ficha.service';
 import { CreateFichaDto } from './dto/create-ficha.dto';
 import { UpdateFichaDto } from './dto/update-ficha.dto';
@@ -11,6 +11,20 @@ export class FichaController {
   create(@Body() createFichaDto: CreateFichaDto) {
     return this.fichaService.create(createFichaDto);
   }
+
+
+  
+  @Post('default')
+  getDefaultRecords(@Body(ValidationPipe) obj: UpdateFichaDto) {
+    return this.fichaService.generateRecordsTodayDefaultRecords(obj);
+  }
+
+  @Post('priority')
+  getPriorityRecords(@Body(ValidationPipe) obj: UpdateFichaDto) {
+    return this.fichaService.generateRecordsTodayPriorityRecords(obj);
+  }
+
+
 
   @Get()
   findAll() {
