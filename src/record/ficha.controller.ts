@@ -13,7 +13,13 @@ export class FichaController {
   }
 
 
-  
+  /* 
+  enviar no corpo do post as informações abaixo
+  {
+    "localId": 1, //id do local
+    "userRegistration": "Inserira aqui a matricula entre aspas"
+  }
+ */
   @Post('default')
   getDefaultRecords(@Body(ValidationPipe) obj: UpdateFichaDto) {
     return this.fichaService.generateRecordsTodayDefaultRecords(obj);
@@ -22,6 +28,16 @@ export class FichaController {
   @Post('priority')
   getPriorityRecords(@Body(ValidationPipe) obj: UpdateFichaDto) {
     return this.fichaService.generateRecordsTodayPriorityRecords(obj);
+  }
+
+  @Post('callDefault')
+  callDefaultRecord(@Body(ValidationPipe) obj: UpdateFichaDto){
+    return this.fichaService.callDefaultRecord(obj);
+  }
+
+  @Post('callPriority')
+  callPriorityRecord(@Body(ValidationPipe) obj: UpdateFichaDto){
+    return this.fichaService.callPriorityRecord(obj);
   }
 
 

@@ -8,4 +8,5 @@ export class UpdateFichaDto extends PartialType(CreateFichaDto) {
     @IsInt({message: 'Precisa ser um inteiro'})
     @IsNotEmpty({message: 'O campo localId não pode ser vazio'})
     localId: number
+    userRegistration?: string
 }

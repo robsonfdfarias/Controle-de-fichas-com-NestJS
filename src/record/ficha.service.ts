@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateFichaDto } from './dto/create-ficha.dto';
 import { UpdateFichaDto } from './dto/update-ficha.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -16,42 +16,65 @@ export class FichaService {
     return today;
   }
 
-  async createIfNotExists(currentDate: string, localId: number): Promise<boolean>{
-    const verify = await this.prisma.ficha.findFirst({
+  async createIfNotExists(currentDate: string, localId: number): Promise<number>{
+    const verify = await this.prisma.fichaToLocal.findFirst({
       where: {
         localId: localId,
-        dateReg: currentDate
+        ficha: {
+          dateReg: currentDate
+        }
       }
     })
     console.log('Primeira verificação:')
     console.log(verify)
     if(verify!=null){
-      return true;
+      return verify.fichaId;
     }
     const reg = await this.prisma.ficha.create({
       data: {
-        localId: localId,
         defaultRecord: 0,
+        defaultRecordCall: 0,
         priorityRecord: 0,
-        dateReg: currentDate
+        priorityRecordCall: 0,
+        dateReg: currentDate,
+        fichaToLocal: {
+          create: {
+            localId: localId
+          }
+        }
       }
     });
     console.log('Segunda verificação:')
     console.log(reg)
     if(reg!=null){
-      return true;
+      return reg.id;
     }
-    return false;
+    return 0;
+  }
+
+  async addLogOfActionUser(message: string, action: string, userRegistration: string){
+    const reg = await this.prisma.log.create({
+      data: {
+        matricula: userRegistration,
+        action: action,
+        dateAction: new Date(Date.now()),
+        description: message
+      }
+    })
+    // console.log(reg)
   }
 
   async generateRecordsTodayDefaultRecords(obj: UpdateFichaDto): Promise<number>{
     const today = this.getCurrentDate();
     //verifica se o registro contendo a data atual e o local fornecido já existe na tabela, se não, ele o cria
-    console.log(this.createIfNotExists(today, obj.localId))
+    const idFicha = await this.createIfNotExists(today, obj.localId);
+    if(idFicha<=0){
+      await this.addLogOfActionUser("Erro ao tentar pegar ou criar automaticamente o registro do dia", "generateDefaultRecord", obj.userRegistration)
+      throw new BadRequestException("Erro ao tentar atualizar a ficha padrão");
+    }
     const {defaultRecord} = await this.prisma.ficha.update({
       where: {
-        dateReg: today,
-        localId: obj.localId
+        id: idFicha
       },
       data: {
         defaultRecord: {
@@ -59,6 +82,8 @@ export class FichaService {
         }
       }
     })
+    console.log('Data---->:'+new Date(Date.now()))
+    await this.addLogOfActionUser("defaultRecord incrementado com sucesso. Ficha: "+defaultRecord, "generateDefaultRecord", obj.userRegistration)
     console.log('Record default update. Current number:'+defaultRecord)
     return defaultRecord;
   }
@@ -66,11 +91,14 @@ export class FichaService {
   async generateRecordsTodayPriorityRecords(obj: UpdateFichaDto): Promise<number>{
     const today = this.getCurrentDate();
     //verifica se o registro contendo a data atual e o local fornecido já existe na tabela, se não, ele o cria
-    console.log('Resultado da verificação: '+this.createIfNotExists(today, obj.localId))
+    const idFicha = await this.createIfNotExists(today, obj.localId);
+    if(idFicha<=0){
+      await this.addLogOfActionUser("Erro ao tentar pegar ou criar automaticamente o registro do dia", "generatePriorityRecord", obj.userRegistration)
+      throw new BadRequestException("Erro ao tentar atualizar a ficha padrão");
+    }
     const {priorityRecord} = await this.prisma.ficha.update({
       where: {
-        dateReg: today,
-        localId: obj.localId
+        id: idFicha
       },
       data: {
         priorityRecord: {
@@ -78,8 +106,83 @@ export class FichaService {
         }
       }
     })
+    await this.addLogOfActionUser("priorityRecord incrementado com sucesso. Ficha: "+priorityRecord, "generatePriorityRecord", obj.userRegistration)
     console.log('Record priority update. Current number:'+priorityRecord)
     return priorityRecord;
+  }
+
+  //Ao chamar a ficha padrão, ele verifica: 
+  //- Se foi retirada alguma ficha hoje, 
+  //- se a quantidade de ficha padrão é igual a quantidade de ficha padrão chamada
+  //Se a primeira opção for NÃO ou a segunda opção for SIM, então ele retorna 0
+  async callDefaultRecord(obj: UpdateFichaDto): Promise<number>{
+    const today = this.getCurrentDate();
+    const checked = await this.prisma.fichaToLocal.findFirst({
+      where: {
+        localId: obj.localId,
+        ficha: {
+          dateReg: today
+        }
+      },
+      include: {
+        ficha: true
+      }
+    });
+    if(checked==null || checked==undefined){
+      return 0;
+    }
+    if(checked.ficha.defaultRecord<=checked.ficha.defaultRecordCall){
+      return 0;
+    }
+    const updateCall = await this.prisma.ficha.update({
+      where:{
+        id: checked.ficha.id
+      },
+      data: {
+        defaultRecordCall: {
+          increment: 1
+        }
+      }
+    })
+    await this.addLogOfActionUser("defaultRecordCall incrementado com sucesso. Ficha: "+updateCall.defaultRecordCall, "callPriorityRecord", obj.userRegistration)
+    return updateCall.defaultRecordCall;
+  }
+
+  //Ao chamar a ficha prioritária, ele verifica: 
+  //- Se foi retirada alguma ficha hoje, 
+  //- se a quantidade de ficha prioritária é igual a quantidade de ficha prioritária chamada
+  //Se a primeira opção for NÃO ou a segunda opção for SIM, então ele retorna 0
+  async callPriorityRecord(obj: UpdateFichaDto): Promise<number>{
+    const today = this.getCurrentDate();
+    const checked = await this.prisma.fichaToLocal.findFirst({
+      where: {
+        localId: obj.localId,
+        ficha: {
+          dateReg: today
+        }
+      },
+      include: {
+        ficha: true
+      }
+    });
+    if(checked==null || checked==undefined){
+      return 0;
+    }
+    if(checked.ficha.priorityRecord<=checked.ficha.priorityRecordCall){
+      return 0;
+    }
+    const updateCall = await this.prisma.ficha.update({
+      where:{
+        id: checked.ficha.id
+      },
+      data: {
+        priorityRecordCall: {
+          increment: 1
+        }
+      }
+    })
+    await this.addLogOfActionUser("priorityRecordCall incrementado com sucesso. Ficha: "+updateCall.priorityRecordCall, "callPriorityRecord", obj.userRegistration)
+    return updateCall.priorityRecordCall;
   }
 
   create(createFichaDto: CreateFichaDto) {

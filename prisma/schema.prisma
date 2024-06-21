@@ -21,10 +21,12 @@ model Admin {
 
 model Ficha {
   id Int @id @default(autoincrement())
-  local Local[]
   defaultRecord Int
+  defaultRecordCall Int
   priorityRecord Int
+  priorityRecordCall Int
   dateReg String
+  fichaToLocal FichaToLocal[]
   @@map("records")
 }
 
@@ -32,13 +34,22 @@ model Local {
   id Int @id @default(autoincrement())
   name String
   address String
-  ficha Ficha[]
+  fichaToLocal FichaToLocal[]
   @@map("locais")
+}
+
+model FichaToLocal {
+  ficha Ficha @relation(fields: [fichaId], references: [id])
+  fichaId Int @unique
+  local Local @relation(fields: [localId], references: [id])
+  localId Int @unique
+  @@id([fichaId, localId])
+  @@map("ficha_to_local")
 }
 
 model Log {
   id Int @id @default(autoincrement())
-  matricula String @unique
+  matricula String
   action String //Se é um atualização, reset de ficha...
   description String // descrição mais detalhada da ação
   dateAction DateTime @default(now())
