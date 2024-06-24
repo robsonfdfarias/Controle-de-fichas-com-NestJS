@@ -40,9 +40,9 @@ model Local {
 
 model FichaToLocal {
   ficha Ficha @relation(fields: [fichaId], references: [id])
-  fichaId Int @unique
+  fichaId Int
   local Local @relation(fields: [localId], references: [id])
-  localId Int @unique
+  localId Int
   @@id([fichaId, localId])
   @@map("ficha_to_local")
 }

@@ -25,8 +25,8 @@ export class FichaService {
         }
       }
     })
-    console.log('Primeira verificação:')
-    console.log(verify)
+    // console.log('Primeira verificação:')
+    // console.log(verify)
     if(verify!=null){
       return verify.fichaId;
     }
@@ -43,9 +43,9 @@ export class FichaService {
           }
         }
       }
-    });
-    console.log('Segunda verificação:')
-    console.log(reg)
+    }); 
+    // console.log('Segunda verificação:')
+    // console.log(reg)
     if(reg!=null){
       return reg.id;
     }
@@ -84,7 +84,7 @@ export class FichaService {
     })
     console.log('Data---->:'+new Date(Date.now()))
     await this.addLogOfActionUser("defaultRecord incrementado com sucesso. Ficha: "+defaultRecord, "generateDefaultRecord", obj.userRegistration)
-    console.log('Record default update. Current number:'+defaultRecord)
+    // console.log('Record default update. Current number:'+defaultRecord)
     return defaultRecord;
   }
 

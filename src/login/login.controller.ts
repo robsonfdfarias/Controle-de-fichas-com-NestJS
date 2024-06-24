@@ -7,10 +7,10 @@ import { UpdateLoginDto } from './dto/update-login.dto';
 export class LoginController {
   constructor(private readonly loginService: LoginService) {}
 
-  // @Post()
-  // create(@Body() createLoginDto: CreateLoginDto) {
-  //   return this.loginService.create(createLoginDto);
-  // }
+  @Post()
+  create(@Body() createLoginDto: CreateLoginDto) {
+    return this.loginService.create(createLoginDto);
+  }
 
   // @Get()
   // findAll() {
