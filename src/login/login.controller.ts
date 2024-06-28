@@ -9,8 +9,12 @@ export class LoginController {
 
   @Post()
   create(@Body() createLoginDto: CreateLoginDto) {
+    console.log('Dados de acesso:')
+    console.log(createLoginDto.user)
+    console.log(createLoginDto.password)
     return this.loginService.create(createLoginDto);
   }
+  
 
   // @Get()
   // findAll() {

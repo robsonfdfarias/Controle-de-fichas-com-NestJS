@@ -185,6 +185,23 @@ export class FichaService {
     return updateCall.priorityRecordCall;
   }
 
+  async showRecords(createFichaDto: CreateFichaDto): Promise<any>{
+    const today = this.getCurrentDate();
+    console.log(createFichaDto)
+    const data = await this.prisma.fichaToLocal.findFirst({
+      where: {
+        localId: createFichaDto.localId,
+        ficha: {
+          dateReg: today
+        }
+      },
+      include: {
+        ficha: true
+      }
+    });
+    return data;
+  }
+
   create(createFichaDto: CreateFichaDto) {
     return 'This action adds a new ficha';
   }

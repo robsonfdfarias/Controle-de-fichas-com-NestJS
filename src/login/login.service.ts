@@ -31,7 +31,8 @@ export class LoginService {
       console.log('Ocorreu um erro: '+erro)
     });
 
-    const token = { access_token: await this.jwtService.signAsync(payload)}
+    const token = { access_token: await this.jwtService.signAsync(payload), localId: 1}
     return token;
   }
+
 }

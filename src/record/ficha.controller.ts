@@ -42,6 +42,11 @@ export class FichaController {
     return this.fichaService.callPriorityRecord(obj);
   }
 
+  @Post('getRecord')
+  getRecord(@Body(ValidationPipe) obj: CreateFichaDto){
+    return this.fichaService.showRecords(obj);
+  }
+
 
 
   @Get()
