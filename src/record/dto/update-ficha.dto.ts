@@ -9,4 +9,5 @@ export class UpdateFichaDto extends PartialType(CreateFichaDto) {
     @IsNotEmpty({message: 'O campo localId não pode ser vazio'})
     localId: number
     userRegistration?: string
+    mesa?: string
 }

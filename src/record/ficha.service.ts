@@ -2,10 +2,15 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateFichaDto } from './dto/create-ficha.dto';
 import { UpdateFichaDto } from './dto/update-ficha.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { EventsGateway } from 'src/events.gateway';
+import { CallDto } from './dto/call.dto';
 
 @Injectable()
 export class FichaService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventsGateway: EventsGateway
+  ) {}
 
   getCurrentDate(){
     const data = new Date();
@@ -144,6 +149,11 @@ export class FichaService {
         }
       }
     })
+    const mesa = obj.mesa?obj.mesa:"01"
+    console.log('->->->->->->->->->-.->')
+    console.log(updateCall.defaultRecordCall)
+    const call: CallDto = {record: updateCall.defaultRecordCall, table: mesa, type: "Default"}
+    this.eventsGateway.updateClient(call);
     await this.addLogOfActionUser("defaultRecordCall incrementado com sucesso. Ficha: "+updateCall.defaultRecordCall, "callPriorityRecord", obj.userRegistration)
     return updateCall.defaultRecordCall;
   }
@@ -181,6 +191,9 @@ export class FichaService {
         }
       }
     })
+    const mesa = obj.mesa?obj.mesa:"01"
+    const call: CallDto = {record: updateCall.priorityRecordCall, table: mesa, type: "Priority"}
+    this.eventsGateway.updateClient(call);
     await this.addLogOfActionUser("priorityRecordCall incrementado com sucesso. Ficha: "+updateCall.priorityRecordCall, "callPriorityRecord", obj.userRegistration)
     return updateCall.priorityRecordCall;
   }

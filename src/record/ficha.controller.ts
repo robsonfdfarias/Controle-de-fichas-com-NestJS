@@ -3,11 +3,16 @@ import { FichaService } from './ficha.service';
 import { CreateFichaDto } from './dto/create-ficha.dto';
 import { UpdateFichaDto } from './dto/update-ficha.dto';
 import { FichaGuard } from 'src/ficha/ficha.guard';
+// import { EventsGateway } from 'src/events.gateway';
+// import { CallDto } from './dto/call.dto';
 
 @Controller('ficha')
 @UseGuards(FichaGuard)
 export class FichaController {
-  constructor(private readonly fichaService: FichaService) {}
+  constructor(
+    private readonly fichaService: FichaService,
+    // private readonly eventsGateway: EventsGateway
+  ) {}
 
   @Post()
   create(@Body() createFichaDto: CreateFichaDto) {
@@ -32,9 +37,17 @@ export class FichaController {
     return this.fichaService.generateRecordsTodayPriorityRecords(obj);
   }
 
+  // @Post('callDefault')
+  // callDefaultRecord(@Body(ValidationPipe) call: CallDto){
+  //   console.log(call)
+  //   // this.eventsGateway.updateClient(call);
+  //   var updateFichaDto: UpdateFichaDto = call.updateFichaDto;
+  //   return this.fichaService.callDefaultRecord(updateFichaDto);
+  // }
+
   @Post('callDefault')
-  callDefaultRecord(@Body(ValidationPipe) obj: UpdateFichaDto){
-    return this.fichaService.callDefaultRecord(obj);
+  callDefaultRecord(@Body(ValidationPipe) updateFichaDto: UpdateFichaDto){
+    return this.fichaService.callDefaultRecord(updateFichaDto);
   }
 
   @Post('callPriority')
