@@ -152,7 +152,7 @@ export class FichaService {
     const mesa = obj.mesa?obj.mesa:"01"
     console.log('->->->->->->->->->-.->')
     console.log(updateCall.defaultRecordCall)
-    const call: CallDto = {record: updateCall.defaultRecordCall, table: mesa, type: "Default"}
+    const call: CallDto = {record: updateCall.defaultRecordCall, table: mesa, type: "Default", localId: obj.localId}
     this.eventsGateway.updateClient(call);
     await this.addLogOfActionUser("defaultRecordCall incrementado com sucesso. Ficha: "+updateCall.defaultRecordCall, "callPriorityRecord", obj.userRegistration)
     return updateCall.defaultRecordCall;
@@ -192,7 +192,7 @@ export class FichaService {
       }
     })
     const mesa = obj.mesa?obj.mesa:"01"
-    const call: CallDto = {record: updateCall.priorityRecordCall, table: mesa, type: "Priority"}
+    const call: CallDto = {record: updateCall.priorityRecordCall, table: mesa, type: "Priority", localId: obj.localId}
     this.eventsGateway.updateClient(call);
     await this.addLogOfActionUser("priorityRecordCall incrementado com sucesso. Ficha: "+updateCall.priorityRecordCall, "callPriorityRecord", obj.userRegistration)
     return updateCall.priorityRecordCall;
@@ -213,6 +213,10 @@ export class FichaService {
       }
     });
     return data;
+  }
+
+  getDefaultPriority(createFichaDto: CreateFichaDto) {
+    //logic call record
   }
 
   create(createFichaDto: CreateFichaDto) {

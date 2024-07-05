@@ -11,6 +11,9 @@ export class CallDto {
     @IsString()
     @IsNotEmpty()
     type: string
+    @IsInt()
+    @IsNotEmpty()
+    localId: number
     // @IsNotEmpty()
     // updateFichaDto: UpdateFichaDto
 }
