@@ -4,13 +4,28 @@ import { UpdateFichaDto } from './dto/update-ficha.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { EventsGateway } from 'src/events.gateway';
 import { CallDto } from './dto/call.dto';
+import * as shell from 'shelljs';
+import * as fs from 'fs';
 
 @Injectable()
 export class FichaService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventsGateway: EventsGateway
-  ) {}
+  ) {
+    this.verifyFile();
+  }
+
+  verifyFile(){
+    const url = shell.pwd().stdout;
+    const partes = url.split('/');
+    if(partes[(partes.length-1)]=='fileRecords' || partes[(partes.length-1)]=='fileCall'){
+      shell.cd ('../');
+    }
+    const fileFolder = 'fileCall'
+    shell.mkdir('-p', fileFolder);
+    shell.cd(fileFolder);
+  }
 
   getCurrentDate(){
     const data = new Date();
@@ -62,8 +77,8 @@ export class FichaService {
       data: {
         matricula: userRegistration,
         action: action,
-        dateAction: new Date(Date.now()),
-        description: message
+        description: message,
+        dateAction: new Date(Date.now())
       }
     })
     // console.log(reg)
@@ -198,12 +213,12 @@ export class FichaService {
     return updateCall.priorityRecordCall;
   }
 
-  async showRecords(createFichaDto: CreateFichaDto): Promise<any>{
+  async showRecords(obj: UpdateFichaDto): Promise<any>{
     const today = this.getCurrentDate();
-    console.log(createFichaDto)
+    // console.log(createFichaDto)
     const data = await this.prisma.fichaToLocal.findFirst({
       where: {
-        localId: createFichaDto.localId,
+        localId: obj.localId,
         ficha: {
           dateReg: today
         }
@@ -212,11 +227,100 @@ export class FichaService {
         ficha: true
       }
     });
-    return data;
+    // console.log('+++++++++++++++++++++++++++++++++++++++')
+    // console.log(data)
+    return {
+      defaultRecord: data.ficha.defaultRecord,
+      defaultRecordCall: data.ficha.defaultRecordCall, 
+      priorityRecord: data.ficha.priorityRecord, 
+      priorityRecordCall: data.ficha.priorityRecordCall
+    };
   }
 
-  getDefaultPriority(createFichaDto: CreateFichaDto) {
+  async getDefaultPriority(obj: UpdateFichaDto) {
     //logic call record
+    // console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    // console.log(obj)
+    var dt = await this.showRecords(obj);
+    //if o valor dentro do arquivo for menor que o limite determinado até a chamada da ficha priority
+    var result= await this.getFileLocalId(obj.localId+'');
+    if(result){
+      // console.log('kkkkkkkkkkkkkkkkkkkkkkkkkkkkkk')
+      // console.log(result);
+      //chama a ficha default
+      // console.log(dt)
+      //verifica se existe ficha default para ser chamada
+      if(dt.defaultRecord>dt.defaultRecordCall){
+        // console.log('O DEFAULTRECORD É MAIOR DO QUE O DEFAULTRECORDCALL')
+        await this.callDefaultRecord(obj);
+      }else{
+        // console.log('O DEFAULTRECORD NÃÃÃÃOOO É MAIOR DO QUE O DEFAULTRECORDCALL')
+        await this.callPriorityRecord(obj);
+      }
+    }else{
+      // console.log('RSRSRSRSRSRSRSRSRS')
+      // console.log(result)
+      // console.log(dt)
+      //chama a ficha priority
+      if(dt.priorityRecord>dt.priorityRecordCall){
+        // console.log('O PRIORITYRECORD É MAIOR DO QUE O PRIORITYRECORDCALL');
+        await this.callPriorityRecord(obj);
+      }else{
+        // console.log('O PRIORITYRECORD NÃÃÃÃOOO É MAIOR DO QUE O PRIORITYRECORDCALL');
+        await this.callDefaultRecord(obj);
+      }
+    }
+  }
+
+  async getFileLocalId(localId: string){
+    const fileName = this.generateFileNameOfController(localId);
+    // console.log(fileName)
+    //esta função verifique se estamos na pasta fileCall, que é a pasta onde deve ficar os arquivos de controle
+    this.verifyFile();
+    if(shell.test('-f', fileName)){
+      // var valueControll: number = parseInt(this.readFileLocalId(fileName), 10) || 10;
+      var valueControll = await this.readFileLocalId(fileName);
+      //Define o controle de chamadas de fichas como sendo 2 default para 1 priority
+      if(valueControll<2){
+        valueControll++;
+        this.writerFileLocalId(fileName, valueControll+'');
+        return true;
+      }else{
+        valueControll = 0;
+        this.writerFileLocalId(fileName, valueControll+'');
+        return false;
+      }
+    }else{
+      this.writerFileLocalId(fileName, '1');
+      return true;
+    }
+  }
+
+  async readFileLocalId(file: string){
+    try{
+      const data = await fs.promises.readFile(file, 'utf8');
+      return parseInt(data);
+    }catch(erro){
+      console.log(erro);
+      return 0;
+    }
+  }
+
+  writerFileLocalId(fileName: string, content: string){
+    shell.echo(content).to(fileName);
+  }
+
+  generateFileNameOfController(localId: string){
+    const data = this.returnDateOfToday();
+    return 'controller-call-localId_'+localId+'-data_'+data+'.txt';
+  }
+  returnDateOfToday(){
+    const hoje = new Date();
+    // Extrair o ano, mês e dia
+    let ano = hoje.getFullYear();
+    let mes = String(hoje.getMonth() + 1).padStart(2, '0'); // Mês começa do zero, então adicionamos 1
+    let dia = String(hoje.getDate()).padStart(2, '0');
+    return `${ano}_${mes}_${dia}`;
   }
 
   create(createFichaDto: CreateFichaDto) {

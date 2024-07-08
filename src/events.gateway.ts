@@ -9,10 +9,20 @@ import {
     OnGatewayConnection,
     OnGatewayDisconnect
   } from '@nestjs/websockets';
-  import { Server, Socket } from 'socket.io';
-  import * as shell from 'shelljs';
-  import * as fs from 'fs';
+import { Server, Socket } from 'socket.io';
+import * as shell from 'shelljs';
+import * as fs from 'fs';
 import { CallDto } from './record/dto/call.dto';
+
+// const url = shell.pwd().stdout;
+// const partes = url.split('/');
+// if(partes[(partes.length-1)]=='fileCall'){
+//   shell.cd ('../');
+// }
+// const fileFolder = 'fileRecords'
+// shell.mkdir('-p', fileFolder);
+// shell.cd(fileFolder);
+
 
   @WebSocketGateway({
     cors: {
@@ -27,13 +37,24 @@ import { CallDto } from './record/dto/call.dto';
     afterInit(server: Server) {
       console.log('Init');
     }
+    
+    verifyFile(){
+      const url = shell.pwd().stdout;
+      const partes = url.split('/');
+      if(partes[(partes.length-1)]=='fileRecords' || partes[(partes.length-1)]=='fileCall'){
+        shell.cd ('../');
+      }
+      const fileFolder = 'fileRecords'
+      shell.mkdir('-p', fileFolder);
+      shell.cd(fileFolder);
+    }
   
     handleConnection(client: Socket, ...args: any[]) {
       const localId = Number(client.handshake.headers.localid);
       const fileName = this.generateFileNameOfHist(localId);
       const keyName = 'msgToClient'+localId;
       console.log(`Client connected: ${client.id}`);
-      console.log(localId);
+      this.verifyFile();
       if(shell.test('-f', fileName)){
         console.log('O arquivo '+fileName+' existe...');
         let chama = 0;
@@ -61,6 +82,7 @@ import { CallDto } from './record/dto/call.dto';
       this.server.emit('msgToClient'+data.localId, data);
       const fileName = this.generateFileNameOfHist(data.localId);
       // {record: data.record, table: data.table, type: data.type, localId: data.localId}
+      this.verifyFile();
       shell.echo(`{"record": ${data.record}, "table": "${data.table}", "type": "${data.type}", "localId": ${data.localId}}`).toEnd(fileName);
     }
 

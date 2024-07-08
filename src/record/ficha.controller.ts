@@ -60,6 +60,11 @@ export class FichaController {
     return this.fichaService.showRecords(obj);
   }
 
+  @Post('defaultPriority')
+  getDefaultPriority(@Body(ValidationPipe) obj: UpdateFichaDto){
+    // console.log(obj)
+    return this.fichaService.getDefaultPriority(obj);
+  }
 
 
   @Get()

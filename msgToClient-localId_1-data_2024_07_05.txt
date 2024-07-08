@@ -1,7 +1,0 @@
-{"record": 3, "table": "01", "type": "Default", "localId": 1}
-{"record": 4, "table": "01", "type": "Default", "localId": 1}
-{"record": 5, "table": "01", "type": "Default", "localId": 1}
-{"record": 6, "table": "01", "type": "Default", "localId": 1}
-{"record": 7, "table": "01", "type": "Default", "localId": 1}
-{"record": 1, "table": "02", "type": "Priority", "localId": 1}
-{"record": 2, "table": "02", "type": "Priority", "localId": 1}
