@@ -56,7 +56,7 @@ import { CallDto } from './record/dto/call.dto';
       console.log(`Client connected: ${client.id}`);
       this.verifyFile();
       if(shell.test('-f', fileName)){
-        console.log('O arquivo '+fileName+' existe...');
+        // console.log('O arquivo '+fileName+' existe...');
         let chama = 0;
         if(chama<1){
           this.readFile2(fileName, client, keyName);
@@ -100,19 +100,18 @@ import { CallDto } from './record/dto/call.dto';
     }
 
     readFile2(file: string, socket: Socket, keyNameChat: string){
-      console.log('Fora do fs readfile')
       fs.readFile(file, 'utf8', (err, data) => {
         if(err){
           console.log(err);
           return;
         }
         const array = data.split('\n');
-        console.log('********************************************')
+        // console.log('********************************************')
         var ar =[]
         for(let i=0; i<(array.length-1); i++){
           ar.unshift(JSON.parse(array[i]));
         }
-        console.log(ar)
+        // console.log(ar)
         socket.emit(keyNameChat, ar);
       });
     }

@@ -15,6 +15,11 @@ export class LoginController {
     return this.loginService.create(createLoginDto);
   }
   
+  @Get('teste')
+  teste(@Body() createLoginDto: CreateLoginDto) {
+    return this.loginService.getDataUser('Danilo Packer', process.env.URL_INTEGRACAO+'/funcionarios/nome/'+'Danilo Packer'+'/ativos?completo=true');
+  }
+  
 
   // @Get()
   // findAll() {
