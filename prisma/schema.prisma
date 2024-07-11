@@ -4,6 +4,9 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+//comando para recompilar o arquivo e fazer as alterações nas tabelas
+//npx prisma migrate dev --name added_job_title
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -53,5 +56,6 @@ model Log {
   action String //Se é um atualização, reset de ficha...
   description String // descrição mais detalhada da ação
   dateAction DateTime @default(now())
+  localId String
   @@map("logs")
 }

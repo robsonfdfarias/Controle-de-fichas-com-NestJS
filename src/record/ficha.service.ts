@@ -72,13 +72,16 @@ export class FichaService {
     return 0;
   }
 
-  async addLogOfActionUser(message: string, action: string, userRegistration: string){
+  async addLogOfActionUser(message: string, action: string, userRegistration: string, localId: string){
+    // console.log('..................................................................................')
+    // console.log(localId)
     const reg = await this.prisma.log.create({
       data: {
-        matricula: userRegistration,
+        matricula: userRegistration+'',
         action: action,
         description: message,
-        dateAction: new Date(Date.now())
+        dateAction: new Date(Date.now()),
+        localId: localId
       }
     })
     // console.log(reg)
@@ -89,7 +92,7 @@ export class FichaService {
     //verifica se o registro contendo a data atual e o local fornecido já existe na tabela, se não, ele o cria
     const idFicha = await this.createIfNotExists(today, obj.localId);
     if(idFicha<=0){
-      await this.addLogOfActionUser("Erro ao tentar pegar ou criar automaticamente o registro do dia", "generateDefaultRecord", obj.userRegistration)
+      await this.addLogOfActionUser("Erro ao tentar pegar ou criar automaticamente o registro do dia", "generateDefaultRecord", obj.userRegistration, obj.localId+'')
       throw new BadRequestException("Erro ao tentar atualizar a ficha padrão");
     }
     const {defaultRecord} = await this.prisma.ficha.update({
@@ -103,7 +106,7 @@ export class FichaService {
       }
     })
     console.log('Data---->:'+new Date(Date.now()))
-    await this.addLogOfActionUser("defaultRecord incrementado com sucesso. Ficha: "+defaultRecord, "generateDefaultRecord", obj.userRegistration)
+    await this.addLogOfActionUser("defaultRecord incrementado com sucesso. Ficha: "+defaultRecord, "generateDefaultRecord", obj.userRegistration, obj.localId+'')
     // console.log('Record default update. Current number:'+defaultRecord)
     return defaultRecord;
   }
@@ -113,7 +116,7 @@ export class FichaService {
     //verifica se o registro contendo a data atual e o local fornecido já existe na tabela, se não, ele o cria
     const idFicha = await this.createIfNotExists(today, obj.localId);
     if(idFicha<=0){
-      await this.addLogOfActionUser("Erro ao tentar pegar ou criar automaticamente o registro do dia", "generatePriorityRecord", obj.userRegistration)
+      await this.addLogOfActionUser("Erro ao tentar pegar ou criar automaticamente o registro do dia", "generatePriorityRecord", obj.userRegistration, obj.localId+'')
       throw new BadRequestException("Erro ao tentar atualizar a ficha padrão");
     }
     const {priorityRecord} = await this.prisma.ficha.update({
@@ -126,7 +129,7 @@ export class FichaService {
         }
       }
     })
-    await this.addLogOfActionUser("priorityRecord incrementado com sucesso. Ficha: "+priorityRecord, "generatePriorityRecord", obj.userRegistration)
+    await this.addLogOfActionUser("priorityRecord incrementado com sucesso. Ficha: "+priorityRecord, "generatePriorityRecord", obj.userRegistration, obj.localId+'')
     console.log('Record priority update. Current number:'+priorityRecord)
     return priorityRecord;
   }
@@ -169,7 +172,7 @@ export class FichaService {
     console.log(updateCall.defaultRecordCall)
     const call: CallDto = {record: updateCall.defaultRecordCall, table: mesa, type: "Default", localId: obj.localId}
     this.eventsGateway.updateClient(call);
-    await this.addLogOfActionUser("defaultRecordCall incrementado com sucesso. Ficha: "+updateCall.defaultRecordCall, "callPriorityRecord", obj.userRegistration)
+    await this.addLogOfActionUser("defaultRecordCall incrementado com sucesso. Ficha: "+updateCall.defaultRecordCall, "callPriorityRecord", obj.userRegistration, obj.localId+'')
     return updateCall.defaultRecordCall;
   }
 
@@ -209,7 +212,7 @@ export class FichaService {
     const mesa = obj.mesa?obj.mesa:"01"
     const call: CallDto = {record: updateCall.priorityRecordCall, table: mesa, type: "Priority", localId: obj.localId}
     this.eventsGateway.updateClient(call);
-    await this.addLogOfActionUser("priorityRecordCall incrementado com sucesso. Ficha: "+updateCall.priorityRecordCall, "callPriorityRecord", obj.userRegistration)
+    await this.addLogOfActionUser("priorityRecordCall incrementado com sucesso. Ficha: "+updateCall.priorityRecordCall, "callPriorityRecord", obj.userRegistration, obj.localId+'')
     return updateCall.priorityRecordCall;
   }
 
